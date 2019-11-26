@@ -1,7 +1,6 @@
 package com.ppb.cameraapp;
 
-import com.ppb.cameraapp.Helper.BaseActivity;
-
+import androidx.appcompat.app.AppCompatActivity;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -18,6 +17,7 @@ import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -29,7 +29,7 @@ import com.ppb.cameraapp.Retrofit.ApiServer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
     Button b1;
     ImageView iv;
     Context context;
@@ -98,25 +98,25 @@ public class MainActivity extends BaseActivity {
         Toast.makeText(this,"Data Telah Terload ke ImageView",Toast.LENGTH_SHORT).show();*/
 
         //Store dataset
-        ApiClient api = getRetrofit().create(ApiClient.class);
+        ApiClient api = ApiServer.builder().create(ApiClient.class);
         api.store("kelompok_rama","jamur",img_b64).enqueue(new Callback<Dataset>() {
             @Override
             public void onResponse(Call<Dataset> call, Response<Dataset> response) {
                 if (response.code()==201){
-                    showInfo("Terkirim!", null);
+                    showToast("Terkirim!");
                 } else {
                     try {
-                        showError("Terjadi masalah!", new Gson().fromJson(response.errorBody().string(),
+                        showToast( new Gson().fromJson(response.errorBody().string(),
                                 ApiResponse.class).getMessage());
                     } catch (Exception e) {
-                        showError("Terjadi masalah!", null);
+                        showToast("Terjadi masalah!");
                     }
                 }
             }
 
             @Override
             public void onFailure(Call<Dataset> call, Throwable t) {
-                showError("Gagal terhubung ke server!", null);
+                showToast("Gagal terhubung ke server!");
             }
         });
     }
@@ -128,6 +128,10 @@ public class MainActivity extends BaseActivity {
             this.requestPermissions(
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE);}
         }
+    }
+
+    public void showToast(String text){
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
 
 }
