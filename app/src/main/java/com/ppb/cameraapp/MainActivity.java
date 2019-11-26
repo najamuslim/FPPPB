@@ -1,7 +1,7 @@
 package com.ppb.cameraapp;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
+import com.ppb.cameraapp.Helper.BaseActivity;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -12,37 +12,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.format.DateFormat;
 import android.util.Base64;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.ppb.cameraapp.Response.ApiResponse;
+import com.ppb.cameraapp.Model.ApiResponse;
+import com.ppb.cameraapp.Model.Dataset;
 import com.ppb.cameraapp.Retrofit.ApiClient;
 import com.ppb.cameraapp.Retrofit.ApiServer;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Date;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
     Button b1;
     ImageView iv;
     Context context;
     private static final int kodekamera = 222;
     private static final int MY_PERMISSIONS_REQUEST_WRITE = 223;
-    String nmFile;
+    private static final String TAG = "MainActivity";
+    String nmFile, responseSuccess;
     private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd").create();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,9 +74,13 @@ public class MainActivity extends AppCompatActivity {
         bm = (Bitmap) datanya.getExtras().get("data");
         iv.setImageBitmap(bm);
 
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
-        byte[] byteArray = stream.toByteArray();
+        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
+        bm.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOS);
+        String img_b64 = "data:image/jpeg;base64," + Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT);
+
+        //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        //bm.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        //byte[] byteArray = stream.toByteArray();
 
         // convert camera photo to byte array
         // save it in your external storage.
@@ -100,23 +98,27 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this,"Data Telah Terload ke ImageView",Toast.LENGTH_SHORT).show();*/
 
         //Store dataset
-        ApiClient api = ApiServer.builder().create(ApiClient.class);
-        Call<ApiResponse> call = api.dataset(3,"jamur","data:image/png;base64,"+ Base64.encodeToString(byteArray, Base64.DEFAULT));
-        call.enqueue(new Callback<ApiResponse>() {
+        ApiClient api = getRetrofit().create(ApiClient.class);
+        api.store("kelompok_rama","jamur",img_b64).enqueue(new Callback<Dataset>() {
             @Override
-            public void onResponse(Call<ApiResponse> call, Response<ApiResponse> response) {
-                if (response.code()==201)
-                {
-                    gson.fromJson(gson.toJson(response.body().getMessage()),ApiResponse.class);
+            public void onResponse(Call<Dataset> call, Response<Dataset> response) {
+                if (response.code()==201){
+                    showInfo("Terkirim!", null);
+                } else {
+                    try {
+                        showError("Terjadi masalah!", new Gson().fromJson(response.errorBody().string(),
+                                ApiResponse.class).getMessage());
+                    } catch (Exception e) {
+                        showError("Terjadi masalah!", null);
+                    }
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse> call, Throwable t) {
-
+            public void onFailure(Call<Dataset> call, Throwable t) {
+                showError("Gagal terhubung ke server!", null);
             }
         });
-        Toast.makeText(this,"Data Telah diupload",Toast.LENGTH_SHORT).show();
     }
 
     private void askWritePermission() {

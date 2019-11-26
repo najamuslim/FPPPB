@@ -1,4 +1,4 @@
-package com.ppb.cameraapp.Response;
+package com.ppb.cameraapp.Model;
 
 import com.google.gson.annotations.SerializedName;
 
