@@ -16,7 +16,7 @@ public interface ApiClient {
     @FormUrlEncoded
     @POST("api/dataset/{kelompok}/{label}")
     Call<Dataset> store(
-            @Path("kelompok") String kelompok,
+            @Path("kelompok") Integer kelompok,
             @Path("label") String label,
             @Field("image") String image
     );

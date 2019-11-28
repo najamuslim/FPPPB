@@ -99,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Store dataset
         ApiClient api = ApiServer.builder().create(ApiClient.class);
-        api.store("kelompok_rama","jamur",img_b64).enqueue(new Callback<Dataset>() {
+        api.store(3,"jamur",img_b64).enqueue(new Callback<Dataset>() {
             @Override
             public void onResponse(Call<Dataset> call, Response<Dataset> response) {
                 if (response.code()==201){
@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
                         showToast( new Gson().fromJson(response.errorBody().string(),
                                 ApiResponse.class).getMessage());
                     } catch (Exception e) {
-                        showToast("Terjadi masalah!");
+                        showToast("Terjadi masalah!" );
                     }
                 }
             }
